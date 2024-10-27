@@ -36,10 +36,9 @@
         let highScore = localStorage.getItem('highScore') || 0;
         let lastPipeTime = 0;
 
-        let cat = {
+        let bird = {
             x: canvas.width/3, y: canvas.height/2,
-            velocity: 0, size: 60, rotation: 0, flapAnimation: 0,
-            color: '#F4C430' // Warm golden color for the cat
+            velocity: 0, size: 60, rotation: 0, flapAnimation: 0
         };
 
         class Particle {
@@ -67,8 +66,87 @@
             }
         }
 
-        // [Cloud, Star, and Pipe classes remain the same]
-        [previous Cloud, Star, and Pipe class definitions...]
+        class Cloud {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = canvas.width + Math.random() * 300;
+                this.y = Math.random() * (canvas.height/2);
+                this.width = Math.random() * 200 + 100;
+                this.height = Math.random() * 80 + 40;
+                this.speed = Math.random() * 1 + 0.5;
+            }
+            update() {
+                this.x -= this.speed;
+                if (this.x + this.width < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width/2, this.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Star {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * canvas.width;
+            }
+            reset() {
+                this.x = canvas.width;
+                this.y = Math.random() * canvas.height/2;
+                this.size = Math.random() * 3 + 1;
+                this.speed = Math.random() * 0.5 + 0.1;
+                this.twinkle = Math.random() * Math.PI;
+            }
+            update() {
+                this.x -= this.speed;
+                this.twinkle += 0.05;
+                if (this.x + this.size < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255,255,255,${0.5 + Math.sin(this.twinkle) * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Pipe {
+            constructor() {
+                this.gap_y = Math.random() * (canvas.height - 400) + 200;
+                this.x = canvas.width;
+                this.width = 100;
+                this.scored = false;
+            }
+            update() {
+                this.x -= PIPE_SPEED;
+            }
+            draw() {
+                const gradient = ctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
+                gradient.addColorStop(0, '#2ecc71');
+                gradient.addColorStop(1, '#27ae60');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(this.x - 10, this.gap_y - PIPE_GAP/2 - 40, this.width + 20, 40);
+                ctx.fillRect(this.x, 0, this.width, this.gap_y - PIPE_GAP/2);
+                ctx.fillRect(this.x - 10, this.gap_y + PIPE_GAP/2, this.width + 20, 40);
+                ctx.fillRect(this.x, this.gap_y + PIPE_GAP/2, this.width, canvas.height);
+            }
+            checkCollision() {
+                const birdRect = {
+                    left: bird.x + 10, right: bird.x + bird.size - 10,
+                    top: bird.y + 10, bottom: bird.y + bird.size - 10
+                };
+                if (birdRect.right > this.x && birdRect.left < this.x + this.width) {
+                    if (birdRect.top < this.gap_y - PIPE_GAP/2 || birdRect.bottom > this.gap_y + PIPE_GAP/2) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
 
         function createParticles(x, y, count, color) {
             for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
@@ -79,16 +157,16 @@
 
         function update() {
             if (!gameStarted || gameOver) return;
-            cat.velocity += GRAVITY;
-            cat.y += cat.velocity;
-            cat.rotation = Math.min(Math.max(cat.velocity * 3, -45), 45) * Math.PI/180;
+            bird.velocity += GRAVITY;
+            bird.y += bird.velocity;
+            bird.rotation = Math.min(Math.max(bird.velocity * 3, -45), 45) * Math.PI/180;
 
-            if (cat.y < 0) {
-                cat.y = 0;
-                cat.velocity = 0;
-            } else if (cat.y > canvas.height - cat.size) {
+            if (bird.y < 0) {
+                bird.y = 0;
+                bird.velocity = 0;
+            } else if (bird.y > canvas.height - bird.size) {
                 gameOver = true;
-                createParticles(cat.x, cat.y, 50, cat.color);
+                createParticles(bird.x, bird.y, 50, '#FFD700');
             }
 
             if (Date.now() - lastPipeTime > 1500) {
@@ -98,10 +176,10 @@
 
             pipes = pipes.filter(pipe => {
                 pipe.update();
-                if (!pipe.scored && pipe.x < cat.x) {
+                if (!pipe.scored && pipe.x < bird.x) {
                     score++;
                     pipe.scored = true;
-                    createParticles(cat.x + cat.size, cat.y, 20, cat.color);
+                    createParticles(bird.x + bird.size, bird.y, 20, '#FFD700');
                 }
                 if (pipe.checkCollision()) {
                     gameOver = true;
@@ -109,7 +187,7 @@
                         highScore = score;
                         localStorage.setItem('highScore', highScore);
                     }
-                    createParticles(cat.x, cat.y, 30, cat.color);
+                    createParticles(bird.x, bird.y, 30, '#FFD700');
                 }
                 return pipe.x > -pipe.width;
             });
@@ -121,79 +199,7 @@
 
             stars.forEach(s => s.update());
             clouds.forEach(c => c.update());
-            cat.flapAnimation += 0.3;
-        }
-
-        function drawCat() {
-            ctx.save();
-            ctx.translate(cat.x + cat.size/2, cat.y + cat.size/2);
-            ctx.rotate(cat.rotation);
-
-            // Cat body
-            ctx.fillStyle = cat.color;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, cat.size/1.5, cat.size/2, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Cat ears
-            const earSize = cat.size/4;
-            ctx.beginPath();
-            ctx.moveTo(-earSize, -cat.size/2);
-            ctx.lineTo(-earSize/2, -cat.size/2 - earSize);
-            ctx.lineTo(0, -cat.size/2);
-            ctx.fillStyle = cat.color;
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.moveTo(0, -cat.size/2);
-            ctx.lineTo(earSize/2, -cat.size/2 - earSize);
-            ctx.lineTo(earSize, -cat.size/2);
-            ctx.fill();
-
-            // Cat face
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(cat.size/4, -cat.size/6, cat.size/6, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Cat eye
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(cat.size/4, -cat.size/6, cat.size/10, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Whiskers
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            const whiskerLength = cat.size/2;
-            const whiskerY = [-5, 0, 5];
-            whiskerY.forEach(y => {
-                // Left whiskers
-                ctx.beginPath();
-                ctx.moveTo(cat.size/4 - 5, y);
-                ctx.lineTo(cat.size/4 - whiskerLength, y - 2);
-                ctx.stroke();
-                
-                // Right whiskers
-                ctx.beginPath();
-                ctx.moveTo(cat.size/4 + 5, y);
-                ctx.lineTo(cat.size/4 + whiskerLength - 10, y - 2);
-                ctx.stroke();
-            });
-
-            // Tail (wavy based on animation)
-            ctx.beginPath();
-            ctx.moveTo(-cat.size/1.5, 0);
-            const tailWave = Math.sin(cat.flapAnimation) * 10;
-            ctx.quadraticCurveTo(
-                -cat.size * 1.2, tailWave, 
-                -cat.size * 1.8, tailWave * 2
-            );
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = cat.color;
-            ctx.stroke();
-
-            ctx.restore();
+            bird.flapAnimation += 0.3;
         }
 
         function draw() {
@@ -205,12 +211,63 @@
 
             stars.forEach(s => s.draw());
             clouds.forEach(c => c.draw());
-            particles.forEach(p => p.y > cat.y && p.draw());
+            particles.forEach(p => p.y > bird.y && p.draw());
             pipes.forEach(p => p.draw());
 
-            drawCat();
+            ctx.save();
+            ctx.translate(bird.x + bird.size/2, bird.y + bird.size/2);
+            ctx.rotate(bird.rotation);
+            
+            // Cat body (previously bird body)
+            ctx.fillStyle = '#F4C430';  // Warm golden color for the cat
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.size/1.5, bird.size/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cat ears
+            const earSize = bird.size/4;
+            ctx.beginPath();
+            ctx.moveTo(-earSize, -bird.size/2);
+            ctx.lineTo(-earSize/2, -bird.size/2 - earSize);
+            ctx.lineTo(0, -bird.size/2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, -bird.size/2);
+            ctx.lineTo(earSize/2, -bird.size/2 - earSize);
+            ctx.lineTo(earSize, -bird.size/2);
+            ctx.fill();
 
-            particles.forEach(p => p.y <= cat.y && p.draw());
+            // Eyes and face
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(bird.size/4, -bird.size/6, bird.size/6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(bird.size/4, -bird.size/6, bird.size/10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Whiskers
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            const whiskerLength = bird.size/2;
+            [-5, 0, 5].forEach(y => {
+                ctx.beginPath();
+                ctx.moveTo(bird.size/4 - 5, y);
+                ctx.lineTo(bird.size/4 - whiskerLength, y - 2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(bird.size/4 + 5, y);
+                ctx.lineTo(bird.size/4 + whiskerLength - 10, y - 2);
+                ctx.stroke();
+            });
+
+            ctx.restore();
+
+            particles.forEach(p => p.y <= bird.y && p.draw());
 
             ctx.fillStyle = 'white';
             ctx.font = '40px "Press Start 2P"';
@@ -240,15 +297,7 @@
             if (!gameStarted) {
                 gameStarted = true;
             } else if (gameOver) {
-                cat = {
-                    x: canvas.width/3, 
-                    y: canvas.height/2, 
-                    velocity: 0, 
-                    size: 60, 
-                    rotation: 0, 
-                    flapAnimation: 0,
-                    color: '#F4C430'
-                };
+                bird = {x: canvas.width/3, y: canvas.height/2, velocity: 0, size: 60, rotation: 0, flapAnimation: 0};
                 pipes = [];
                 particles = [];
                 score = 0;
@@ -256,8 +305,8 @@
                 gameStarted = false;
                 lastPipeTime = Date.now();
             } else {
-                cat.velocity = FLAP_STRENGTH;
-                createParticles(cat.x - 10, cat.y + cat.size/2, 5, cat.color);
+                bird.velocity = FLAP_STRENGTH;
+                createParticles(bird.x - 10, bird.y + bird.size/2, 5, '#FFD700');
             }
         }
 
