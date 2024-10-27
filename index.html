@@ -1,276 +1,330 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐕 Super Gerador de Nomes</title>
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Flappy Cat HD</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         body {
-            font-family: 'Righteous', cursive;
-            overflow-x: hidden;
-            touch-action: manipulation;
-            background: black;
-            min-height: 100vh;
-        }
-
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-        }
-
-        .animate-background {
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-        }
-
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .rainbow-text {
-            background: linear-gradient(to right, #64ffda, #7ee8fa, #80d0c7, #88e1f2, #a6c1ee, #c1c8f1, #dbd4f0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: rainbow-move 8s linear infinite;
-            background-size: 200% auto;
-        }
-
-        @keyframes rainbow-move {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
-        }
-
-        .glow-effect {
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 20px #fff, 0 0 30px #64ffda, 0 0 40px #64ffda, 0 0 50px #64ffda; }
-            to { text-shadow: 0 0 30px #fff, 0 0 40px #a6c1ee, 0 0 50px #a6c1ee, 0 0 60px #a6c1ee; }
-        }
-
-        .mega-button {
-            transition: all 0.3s ease;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            height: 180px !important;
-            font-size: 3.5rem !important;
-            background: linear-gradient(135deg, #64ffda, #a6c1ee) !important;
-        }
-
-        .mega-button:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(100,255,218,0.3);
-        }
-
-        .mega-button:active {
-            transform: translateY(2px) scale(0.98);
-        }
-
-        .noise-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            opacity: 0.05;
-            z-index: 1;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        }
-
-        .category-button {
-            font-size: 2rem;
-            height: 120px;
+            margin: 0;
             display: flex;
-            align-items: center;
             justify-content: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-            border: 3px solid rgba(255,255,255,0.2);
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a2e;
+            font-family: 'Press Start 2P';
+            overflow: hidden;
         }
-
-        .category-button:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: rgba(255,255,255,0.8);
-        }
-
-        .generated-name {
-            font-size: 5rem;
-            line-height: 1.2;
-            padding: 2rem;
-            border-radius: 20px;
-            background: rgba(100,255,218,0.1);
-            backdrop-filter: blur(10px);
-            transform-origin: center;
-            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @media (min-width: 768px) {
-            .grid-container {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 1.5rem;
-            }
-        }
-
-        @media (max-width: 767px) {
-            .grid-container {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-            }
+        canvas {
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,195,255,0.3);
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    <div class="noise-bg"></div>
-    <script type="text/babel">
-        function DogNameGenerator() {
-            const [selectedCategory, setSelectedCategory] = React.useState(null);
-            const [generatedName, setGeneratedName] = React.useState('');
-            const [isGenerating, setIsGenerating] = React.useState(false);
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1920;
+        canvas.height = 1080;
 
-            const dogNames = {
-                cute: [
-                    'Brigadeirinho', 'Pipoca Doce', 'Paçoquinha', 'Bolinha de Neve',
-                    'Fofuxo', 'Nuggetinho', 'Pipoquinha', 'Biscoitinho',
-                    'Marshmallowzinho', 'Algodão Doce', 'Pudimzinho', 'Docinho de Coco',
-                    'Chocolatinho', 'Fubazinho', 'Mingau', 'Bolinho de Chuva'
-                ],
-                powerful: [
-                    'Super Trovão', 'Mega Pepita', 'Ultra Biscoito', 'Capitão Bocejo',
-                    'General Fofura', 'Doutor Lambida', 'Mestre Soneca', 'Rei da Bagunça',
-                    'Guardião do Sofá', 'Destruidor de Chinelos', 'Comedor de Deveres'
-                ],
-                hunter: [
-                    'Farejador de Petiscos', 'Caçador de Almofadas', 'Rastreador de Lanches',
-                    'Perseguidor do Carteiro', 'Inspetor de Sandálias', 'Detetive do Pote',
-                    'Explorador do Quintal', 'Xerife da Ração'
-                ],
-                loving: [
-                    'Xodózinho', 'Beijoqueiro', 'Carinhosinho', 'Abraçinho',
-                    'Dengosinho', 'Amorzinho', 'Coração Peludo', 'Fofurinha',
-                    'Xuxuzinho', 'Bebê Peludo', 'Carrapato de Amor'
-                ],
-                guardian: [
-                    'Guardião da Geladeira', 'Protetor do Sofá', 'Vigia do Portão',
-                    'Sentinela do Petisco', 'Defensor da Casinha', 'Escudeiro da Família',
-                    'Guardião das Guloseimas', 'Protetor do Jardim'
-                ]
-            };
+        const GRAVITY = 0.5, FLAP_STRENGTH = -8, PIPE_SPEED = 5, PIPE_GAP = 350;
+        let particles = [], clouds = [], stars = [], pipes = [];
+        let gameStarted = false, gameOver = false, score = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let lastPipeTime = 0;
 
-            const categories = [
-                { id: 'cute', label: 'Fofinhos', color: 'from-teal-300 to-cyan-300' },
-                { id: 'powerful', label: 'Poderosos', color: 'from-cyan-300 to-blue-300' },
-                { id: 'hunter', label: 'Caçadores', color: 'from-blue-300 to-indigo-300' },
-                { id: 'loving', label: 'Dengosos', color: 'from-indigo-300 to-violet-300' },
-                { id: 'guardian', label: 'Protetores', color: 'from-violet-300 to-purple-300' }
-            ];
+        let bird = {
+            x: canvas.width/3, y: canvas.height/2,
+            velocity: 0, size: 60, rotation: 0, flapAnimation: 0
+        };
 
-            const generateName = () => {
-                if (!selectedCategory) return;
-                
-                setIsGenerating(true);
-                
-                const flash = document.createElement('div');
-                flash.style.position = 'fixed';
-                flash.style.top = '0';
-                flash.style.left = '0';
-                flash.style.width = '100%';
-                flash.style.height = '100%';
-                flash.style.backgroundColor = '#64ffda';
-                flash.style.opacity = '0';
-                flash.style.transition = 'opacity 0.2s ease';
-                flash.style.pointerEvents = 'none';
-                flash.style.zIndex = '9999';
-                document.body.appendChild(flash);
-
-                requestAnimationFrame(() => {
-                    flash.style.opacity = '0.3';
-                    setTimeout(() => {
-                        flash.style.opacity = '0';
-                        setTimeout(() => document.body.removeChild(flash), 300);
-                    }, 100);
-                });
-
-                setTimeout(() => {
-                    const names = dogNames[selectedCategory];
-                    const randomName = names[Math.floor(Math.random() * names.length)];
-                    setGeneratedName(randomName);
-                    setIsGenerating(false);
-
-                    document.querySelector('.main-container').style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
-                    setTimeout(() => {
-                        document.querySelector('.main-container').style.animation = '';
-                    }, 500);
-                }, 800);
-            };
-
-            return (
-                <div className="min-h-screen bg-gradient-to-br from-teal-800 via-cyan-700 to-blue-800 animate-background">
-                    <div className="main-container">
-                        <h1 className="text-6xl md:text-8xl text-center mb-12 rainbow-text animate-float py-8">
-                            🐕 Super Gerador de Nomes 🐕
-                        </h1>
-
-                        <div className="grid-container mb-12">
-                            {categories.map((category) => (
-                                <button
-                                    key={category.id}
-                                    className={`category-button rounded-2xl bg-gradient-to-r ${category.color}
-                                              ${selectedCategory === category.id ? 'ring-4 ring-teal-300' : ''}`}
-                                    onClick={() => setSelectedCategory(category.id)}
-                                >
-                                    {category.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            className={`mega-button w-full text-white rounded-2xl mb-12 
-                                     ${isGenerating ? 'opacity-75 cursor-not-allowed' : ''}`}
-                            onClick={generateName}
-                            disabled={!selectedCategory || isGenerating}
-                        >
-                            {isGenerating ? '✨ Gerando...' : '🎲 Gerar Nome Mágico 🎲'}
-                        </button>
-
-                        {generatedName && (
-                            <div className="text-center">
-                                <div className="generated-name glow-effect text-white inline-block">
-                                    ✨ {generatedName} ✨
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.size = Math.random() * 8 + 4;
+                this.speedX = (Math.random() - 0.5) * 8;
+                this.speedY = (Math.random() - 0.5) * 8;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.02;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+                this.size *= 0.99;
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
         }
 
-        ReactDOM.render(<DogNameGenerator />, document.getElementById('root'));
+        class Cloud {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = canvas.width + Math.random() * 300;
+                this.y = Math.random() * (canvas.height/2);
+                this.width = Math.random() * 200 + 100;
+                this.height = Math.random() * 80 + 40;
+                this.speed = Math.random() * 1 + 0.5;
+            }
+            update() {
+                this.x -= this.speed;
+                if (this.x + this.width < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width/2, this.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Star {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * canvas.width;
+            }
+            reset() {
+                this.x = canvas.width;
+                this.y = Math.random() * canvas.height/2;
+                this.size = Math.random() * 3 + 1;
+                this.speed = Math.random() * 0.5 + 0.1;
+                this.twinkle = Math.random() * Math.PI;
+            }
+            update() {
+                this.x -= this.speed;
+                this.twinkle += 0.05;
+                if (this.x + this.size < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255,255,255,${0.5 + Math.sin(this.twinkle) * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Pipe {
+            constructor() {
+                this.gap_y = Math.random() * (canvas.height - 400) + 200;
+                this.x = canvas.width;
+                this.width = 100;
+                this.scored = false;
+            }
+            update() {
+                this.x -= PIPE_SPEED;
+            }
+            draw() {
+                const gradient = ctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
+                gradient.addColorStop(0, '#2ecc71');
+                gradient.addColorStop(1, '#27ae60');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(this.x - 10, this.gap_y - PIPE_GAP/2 - 40, this.width + 20, 40);
+                ctx.fillRect(this.x, 0, this.width, this.gap_y - PIPE_GAP/2);
+                ctx.fillRect(this.x - 10, this.gap_y + PIPE_GAP/2, this.width + 20, 40);
+                ctx.fillRect(this.x, this.gap_y + PIPE_GAP/2, this.width, canvas.height);
+            }
+            checkCollision() {
+                const birdRect = {
+                    left: bird.x + 10, right: bird.x + bird.size - 10,
+                    top: bird.y + 10, bottom: bird.y + bird.size - 10
+                };
+                if (birdRect.right > this.x && birdRect.left < this.x + this.width) {
+                    if (birdRect.top < this.gap_y - PIPE_GAP/2 || birdRect.bottom > this.gap_y + PIPE_GAP/2) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        function createParticles(x, y, count, color) {
+            for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
+        }
+
+        for (let i = 0; i < 10; i++) clouds.push(new Cloud());
+        for (let i = 0; i < 100; i++) stars.push(new Star());
+
+        function update() {
+            if (!gameStarted || gameOver) return;
+            bird.velocity += GRAVITY;
+            bird.y += bird.velocity;
+            bird.rotation = Math.min(Math.max(bird.velocity * 3, -45), 45) * Math.PI/180;
+
+            if (bird.y < 0) {
+                bird.y = 0;
+                bird.velocity = 0;
+            } else if (bird.y > canvas.height - bird.size) {
+                gameOver = true;
+                createParticles(bird.x, bird.y, 50, '#FFD700');
+            }
+
+            if (Date.now() - lastPipeTime > 1500) {
+                pipes.push(new Pipe());
+                lastPipeTime = Date.now();
+            }
+
+            pipes = pipes.filter(pipe => {
+                pipe.update();
+                if (!pipe.scored && pipe.x < bird.x) {
+                    score++;
+                    pipe.scored = true;
+                    createParticles(bird.x + bird.size, bird.y, 20, '#FFD700');
+                }
+                if (pipe.checkCollision()) {
+                    gameOver = true;
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('highScore', highScore);
+                    }
+                    createParticles(bird.x, bird.y, 30, '#FFD700');
+                }
+                return pipe.x > -pipe.width;
+            });
+
+            particles = particles.filter(p => {
+                p.update();
+                return p.life > 0;
+            });
+
+            stars.forEach(s => s.update());
+            clouds.forEach(c => c.update());
+            bird.flapAnimation += 0.3;
+        }
+
+        function draw() {
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGradient.addColorStop(0, '#1a1a2e');
+            bgGradient.addColorStop(1, '#0f3460');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            stars.forEach(s => s.draw());
+            clouds.forEach(c => c.draw());
+            particles.forEach(p => p.y > bird.y && p.draw());
+            pipes.forEach(p => p.draw());
+
+            ctx.save();
+            ctx.translate(bird.x + bird.size/2, bird.y + bird.size/2);
+            ctx.rotate(bird.rotation);
+            
+            // Cat body (previously bird body)
+            ctx.fillStyle = '#F4C430';  // Warm golden color for the cat
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.size/1.5, bird.size/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cat ears
+            const earSize = bird.size/4;
+            ctx.beginPath();
+            ctx.moveTo(-earSize, -bird.size/2);
+            ctx.lineTo(-earSize/2, -bird.size/2 - earSize);
+            ctx.lineTo(0, -bird.size/2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, -bird.size/2);
+            ctx.lineTo(earSize/2, -bird.size/2 - earSize);
+            ctx.lineTo(earSize, -bird.size/2);
+            ctx.fill();
+
+            // Eyes and face
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(bird.size/4, -bird.size/6, bird.size/6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(bird.size/4, -bird.size/6, bird.size/10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Whiskers
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            const whiskerLength = bird.size/2;
+            [-5, 0, 5].forEach(y => {
+                ctx.beginPath();
+                ctx.moveTo(bird.size/4 - 5, y);
+                ctx.lineTo(bird.size/4 - whiskerLength, y - 2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(bird.size/4 + 5, y);
+                ctx.lineTo(bird.size/4 + whiskerLength - 10, y - 2);
+                ctx.stroke();
+            });
+
+            ctx.restore();
+
+            particles.forEach(p => p.y <= bird.y && p.draw());
+
+            ctx.fillStyle = 'white';
+            ctx.font = '40px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Score: ${score}`, canvas.width/2, 80);
+            ctx.fillText(`High: ${highScore}`, canvas.width/2, 140);
+
+            if (!gameStarted || gameOver) {
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = '60px "Press Start 2P"';
+                ctx.fillText(gameOver ? 'GAME OVER!' : 'FLAPPY CAT', canvas.width/2, canvas.height/2 - 100);
+                ctx.font = '30px "Press Start 2P"';
+                ctx.fillText(gameOver ? 'Tap to Restart' : 'Tap to Start', canvas.width/2, canvas.height/2 + 100);
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function handleInput(e) {
+            e.preventDefault();
+            if (!gameStarted) {
+                gameStarted = true;
+            } else if (gameOver) {
+                bird = {x: canvas.width/3, y: canvas.height/2, velocity: 0, size: 60, rotation: 0, flapAnimation: 0};
+                pipes = [];
+                particles = [];
+                score = 0;
+                gameOver = false;
+                gameStarted = false;
+                lastPipeTime = Date.now();
+            } else {
+                bird.velocity = FLAP_STRENGTH;
+                createParticles(bird.x - 10, bird.y + bird.size/2, 5, '#FFD700');
+            }
+        }
+
+        function resizeCanvas() {
+            const scale = Math.min(
+                (window.innerWidth - 40) / canvas.width,
+                (window.innerHeight - 40) / canvas.height
+            );
+            canvas.style.width = `${canvas.width * scale}px`;
+            canvas.style.height = `${canvas.height * scale}px`;
+        }
+
+        canvas.addEventListener('mousedown', handleInput);
+        canvas.addEventListener('touchstart', handleInput);
+        window.addEventListener('keydown', e => e.code === 'Space' && handleInput(e));
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        gameLoop();
     </script>
 </body>
 </html>
